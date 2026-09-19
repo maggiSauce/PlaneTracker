@@ -5,7 +5,7 @@ map_osm = folium.Map(location=[53.3147, -113.5277], zoom_start=13)
 
 #  Superimpose customized dots (lat, long)
 coordinates = []
-aircraftData = adsbService.getAircraftInArea("53.3147", "-113.5277", 25)
+aircraftData = adsbService.getAircraftInArea("53.3147", "-113.5277", 100)
 
 for ac in aircraftData["ac"]:
     coordinates.append((
@@ -13,6 +13,8 @@ for ac in aircraftData["ac"]:
         ac["lon"],
         ac["desc"]
     ))
+
+print(len(aircraftData["ac"]))
 
 # coordinates = [
 #     (41.8781, -87.6298, "Dot A"),

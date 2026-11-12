@@ -1,70 +1,130 @@
-package com.example.planetrackermobile.ui.screens
 
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import com.example.planetrackermobile.R
-import org.maplibre.android.MapLibre
+package com.example.yourapp
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapView
+import org.maplibre.android.maps.Style
 
-class MapScreen : AppCompatActivity() {
-    private lateinit var mapView: MapView
+private const val MAP_STYLE_URL =
+    "https://tiles.openfreemap.org/styles/liberty"
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+@Composable
+fun MapScreen() {
 
-        MapLibre.getInstance(this)
-        setContentView(R.layout.activity_map)
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycle = lifecycleOwner.lifecycle
 
-        mapView = findViewById(R.id.mapView)
-        mapView.onCreate(savedInstanceState)
-        mapView.getMapAsync { map ->
-            // Load a demo map style for initial testing
-            map.setStyle(
-                "https://demotiles.maplibre.org/style.json"
-            )
+    // Create the MapView only once during this composition.
+    val mapView = remember(context) {
+        MapView(context).apply {
+            onCreate(null)
 
-            // Start centered on Edmonton
-            map.cameraPosition = CameraPosition.Builder()
-                .target(LatLng(53.5461, -113.4938))
-                .zoom(12.0)
-                .build()
+            getMapAsync { map ->
+
+                // Set initial camera position
+                map.cameraPosition = CameraPosition.Builder()
+                    .target(
+                        LatLng(
+                            53.5461,
+                            -113.4938
+                        )
+                    )
+                    .zoom(12.0)
+                    .build()
+
+                // Load map style
+                map.setStyle(
+                    Style.Builder().fromUri(MAP_STYLE_URL)
+                )
+            }
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        mapView.onStart()
+    // Forward Android lifecycle events to MapLibre
+    DisposableEffect(lifecycle, mapView) {
+
+        var started = false
+        var resumed = false
+        var destroyed = false
+
+        val observer = LifecycleEventObserver { _, event ->
+
+            when (event) {
+
+                Lifecycle.Event.ON_START -> {
+                    if (!started) {
+                        mapView.onStart()
+                        started = true
+                    }
+                }
+
+                Lifecycle.Event.ON_RESUME -> {
+                    if (!resumed) {
+                        mapView.onResume()
+                        resumed = true
+                    }
+                }
+
+                Lifecycle.Event.ON_PAUSE -> {
+                    if (resumed) {
+                        mapView.onPause()
+                        resumed = false
+                    }
+                }
+
+                Lifecycle.Event.ON_STOP -> {
+                    if (started) {
+                        mapView.onStop()
+                        started = false
+                    }
+                }
+
+                Lifecycle.Event.ON_DESTROY -> {
+                    mapView.onDestroy()
+                    destroyed = true
+                }
+
+                else -> Unit
+            }
+        }
+
+        lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycle.removeObserver(observer)
+
+            // Clean up if the composable is removed before
+            // the Activity itself is destroyed.
+            if (!destroyed) {
+                if (resumed) mapView.onPause()
+                if (started) mapView.onStop()
+
+                mapView.onDestroy()
+            }
+        }
     }
 
-    override fun onResume() {
-        super.onResume()
-        mapView.onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        mapView.onPause()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        mapView.onStop()
-    }
-
-    override fun onLowMemory() {
-        super.onLowMemory()
-        mapView.onLowMemory()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        mapView.onDestroy()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        mapView.onSaveInstanceState(outState)
+    // Display the map
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        AndroidView(
+            factory = { mapView },
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }

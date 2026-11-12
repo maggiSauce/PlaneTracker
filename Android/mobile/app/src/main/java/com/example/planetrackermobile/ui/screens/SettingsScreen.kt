@@ -45,6 +45,7 @@ fun SettingsScreen() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
+
         ) {
             Text(
                 text = "Dark Mode",

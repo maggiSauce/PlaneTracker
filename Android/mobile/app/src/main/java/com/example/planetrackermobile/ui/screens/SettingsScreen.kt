@@ -3,32 +3,63 @@ package com.example.planetrackermobile.ui.screens
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.planetrackermobile.data.SettingsManager
+import com.example.planetrackermobile.data.SettingsOptions
 import com.example.planetrackermobile.ui.theme.PlaneTrackerTheme
-
-enum class UpdateRate {
-    SLOW,
-    MEDIUM,
-    FAST,
-}
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen() {
-    var isDarkMode by remember { mutableStateOf(false)}
-    var selectedUpdateRate by remember { mutableStateOf(UpdateRate.MEDIUM) }
+    val context = LocalContext.current
+    val settingsManager = remember {
+        SettingsManager(context)
+    }
+
+    val scope = rememberCoroutineScope()
+
+    val darkModeEnabled by settingsManager.getBoolean(
+        SettingsManager.DARK_MODE_ENABLED,
+        true
+    )
+        .collectAsState(initial = true)
+
+    val selectedUpdateRate by settingsManager.getString(
+        SettingsManager.UPDATE_RATE,
+        SettingsOptions.updateRates[0]
+    )
+        .collectAsState(initial = SettingsOptions.updateRates[0])
+
+
+    val selectedTheme by settingsManager.getString(
+        SettingsManager.SELECTED_THEME,
+        SettingsOptions.themes[0]
+    )
+        .collectAsState(
+            initial = SettingsOptions.themes[0]
+        )
+    var expanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -41,24 +72,72 @@ fun SettingsScreen() {
             style = MaterialTheme.typography.headlineMedium
         )
 
+        // Dark Mode
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
 
-        ) {
+            ) {
             Text(
                 text = "Dark Mode",
                 style = MaterialTheme.typography.bodyLarge
             )
             Switch(
-                checked = isDarkMode,
-                onCheckedChange = { isDarkMode = it }
+                checked = darkModeEnabled,
+                onCheckedChange = { newValue ->
+                    scope.launch {
+                        settingsManager.saveBoolean(SettingsManager.DARK_MODE_ENABLED, newValue)
+                    }
+                }
             )
+        }
+
+        // Map Theme
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Theme",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Box {
+                OutlinedButton(
+                    onClick = { expanded = true }
+                ) {
+                    Text(
+                        text = selectedTheme,
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    SettingsOptions.themes.forEach { theme ->
+                        DropdownMenuItem(
+                            text = { Text(theme) },
+                            onClick = {
+                                scope.launch {
+                                    settingsManager.saveString(
+                                        SettingsManager.SELECTED_THEME,
+                                        theme
+                                    )
+                                }
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
         }
 
         HorizontalDivider()
 
+        // Update Rate
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -69,19 +148,36 @@ fun SettingsScreen() {
             SingleChoiceSegmentedButtonRow(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                UpdateRate.entries.forEachIndexed { index, rate ->
+                SettingsOptions.updateRates.forEach { SelectedRate ->
                     SegmentedButton(
-                        selected = selectedUpdateRate == rate,
-                        onClick = { selectedUpdateRate = rate },
+                        selected = selectedUpdateRate == SelectedRate,
+                        onClick = {
+                            scope.launch {
+                                settingsManager.saveString(
+                                    SettingsManager.UPDATE_RATE,
+                                    SelectedRate
+                                )
+                            }
+                        },
                         shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = UpdateRate.entries.size
+                            index = SettingsOptions.updateRates.indexOf(SelectedRate),
+                            count = SettingsOptions.updateRates.size
                         )
                     ) {
-                        Text(text = rate.name)
+                        Text(text = SelectedRate)
                     }
                 }
             }
+        }
+
+        Button(
+            onClick = {
+                scope.launch {
+                    settingsManager.printSettings()
+                }
+            }
+        ) {
+            Text("tester")
         }
     }
 }

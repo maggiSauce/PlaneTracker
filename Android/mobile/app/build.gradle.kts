@@ -72,6 +72,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     // MapLibre
     implementation("org.maplibre.gl:android-sdk:13.7.1")
+    // datastore
+    implementation("androidx.datastore:datastore-preferences:1.3.0")
 
     // testing
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")

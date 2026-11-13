@@ -18,8 +18,8 @@ import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 
-private const val MAP_STYLE_URL =
-    "https://tiles.openfreemap.org/styles/liberty"
+private const val MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/fiord"
+//    "https://tiles.openfreemap.org/styles/liberty"
 
 @Composable
 fun MapScreen() {

@@ -11,7 +11,11 @@ import kotlinx.coroutines.flow.map
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
 object SettingsOptions {
-    val themes = listOf("fiord", "liberty")
+    val themesMap: Map<String, String> = mapOf(
+        "FIORD" to "https://tiles.openfreemap.org/styles/fiord",
+        "LIBERTY" to "https://tiles.openfreemap.org/styles/liberty",
+        "DARK" to "https://styles.maptoolkit.org/dark.json",
+    )
     val updateRates = listOf("SLOW", "NORMAL", "FAST")
 }
 class SettingsManager(private val context: Context) {

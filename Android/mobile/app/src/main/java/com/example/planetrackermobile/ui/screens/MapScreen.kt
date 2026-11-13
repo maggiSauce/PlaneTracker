@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -12,21 +15,29 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.planetrackermobile.data.SettingsManager
+import com.example.planetrackermobile.data.SettingsOptions
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 
-private const val MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/fiord"
-//    "https://tiles.openfreemap.org/styles/liberty"
+private const val DEFAULT_MAP_URI = "https://tiles.openfreemap.org/styles/fiord"
 
 @Composable
 fun MapScreen() {
 
     val context = LocalContext.current
+    val settingsManager = SettingsManager(context)
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycle = lifecycleOwner.lifecycle
+
+    val selectedMapKey by settingsManager
+        .getString(SettingsManager.SELECTED_THEME, SettingsOptions.themesMap.keys.first())
+        .collectAsState(initial = SettingsOptions.themesMap.keys.first())
 
     // Create the MapView only once during this composition.
     val mapView = remember(context) {
@@ -45,12 +56,16 @@ fun MapScreen() {
                     )
                     .zoom(12.0)
                     .build()
-
-                // Load map style
-                map.setStyle(
-                    Style.Builder().fromUri(MAP_STYLE_URL)
-                )
             }
+        }
+    }
+
+    LaunchedEffect(selectedMapKey, mapView) {
+        val selectedMapThemeUri = SettingsOptions.themesMap[selectedMapKey] ?: DEFAULT_MAP_URI
+        mapView.getMapAsync { map ->
+            map.setStyle(
+                Style.Builder().fromUri(selectedMapThemeUri)
+            )
         }
     }
 

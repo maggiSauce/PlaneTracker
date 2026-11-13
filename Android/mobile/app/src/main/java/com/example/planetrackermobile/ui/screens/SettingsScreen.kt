@@ -54,10 +54,10 @@ fun SettingsScreen() {
 
     val selectedTheme by settingsManager.getString(
         SettingsManager.SELECTED_THEME,
-        SettingsOptions.themes[0]
+        SettingsOptions.themesMap.keys.first()
     )
         .collectAsState(
-            initial = SettingsOptions.themes[0]
+            initial = SettingsOptions.themesMap.keys.first()
         )
     var expanded by remember { mutableStateOf(false) }
 
@@ -117,7 +117,7 @@ fun SettingsScreen() {
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    SettingsOptions.themes.forEach { theme ->
+                    SettingsOptions.themesMap.keys.forEach { theme ->
                         DropdownMenuItem(
                             text = { Text(theme) },
                             onClick = {

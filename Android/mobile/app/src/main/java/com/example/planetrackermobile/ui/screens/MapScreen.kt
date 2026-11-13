@@ -1,4 +1,3 @@
-
 package com.example.yourapp
 
 import androidx.compose.foundation.layout.Box
@@ -17,9 +16,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.planetrackermobile.data.SettingsManager
 import com.example.planetrackermobile.data.SettingsOptions
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapView
@@ -27,9 +23,9 @@ import org.maplibre.android.maps.Style
 
 private const val DEFAULT_MAP_URI = "https://tiles.openfreemap.org/styles/fiord"
 
+// TODO: read docs to add planes https://maplibre.org/maplibre-native/android/examples/location-component/
 @Composable
 fun MapScreen() {
-
     val context = LocalContext.current
     val settingsManager = SettingsManager(context)
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -71,15 +67,12 @@ fun MapScreen() {
 
     // Forward Android lifecycle events to MapLibre
     DisposableEffect(lifecycle, mapView) {
-
         var started = false
         var resumed = false
         var destroyed = false
 
         val observer = LifecycleEventObserver { _, event ->
-
             when (event) {
-
                 Lifecycle.Event.ON_START -> {
                     if (!started) {
                         mapView.onStart()
@@ -116,7 +109,6 @@ fun MapScreen() {
                 else -> Unit
             }
         }
-
         lifecycle.addObserver(observer)
 
         onDispose {

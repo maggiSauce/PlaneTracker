@@ -2,8 +2,10 @@ package com.example.planetrackermobile.data
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.collectAsState
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -11,6 +13,7 @@ import kotlinx.coroutines.flow.map
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
 object SettingsOptions {
+    // find more maps at https://makewithmaplibre.com/basemaps/
     val themesMap: Map<String, String> = mapOf(
         "FIORD" to "https://tiles.openfreemap.org/styles/fiord",
         "LIBERTY" to "https://tiles.openfreemap.org/styles/liberty",
@@ -18,8 +21,8 @@ object SettingsOptions {
     )
     val updateRates = listOf("SLOW", "NORMAL", "FAST")
 }
-class SettingsManager(private val context: Context) {
 
+class SettingsManager(private val context: Context) {
     companion object {
         val SELECTED_THEME = stringPreferencesKey("selected_theme")
         val DARK_MODE_ENABLED = booleanPreferencesKey("darkModeEnabled")

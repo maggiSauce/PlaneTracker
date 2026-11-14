@@ -20,6 +20,11 @@ import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
+import org.maplibre.compose.location.LocationTrackingEffect
+import org.maplibre.compose.location.rememberDefaultLocationProvider
+import org.maplibre.compose.location.rememberLocationState
+import org.maplibre.compose.map.rememberMapState
+import org.maplibre.compose.camera.CameraUpdate
 
 private const val DEFAULT_MAP_URI = "https://tiles.openfreemap.org/styles/fiord"
 
@@ -31,9 +36,17 @@ fun MapScreen() {
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycle = lifecycleOwner.lifecycle
 
+    val locationProvider = rememberDefaultLocationProvider()
+    val locationState = rememberLocationState(locationProvider)
+    val mapState = rememberMapState()
+
     val selectedMapKey by settingsManager
         .getString(SettingsManager.SELECTED_THEME, SettingsOptions.themesMap.keys.first())
         .collectAsState(initial = SettingsOptions.themesMap.keys.first())
+
+    LocationTrackingEffect(locationState = locationState) {
+        mapState.animateCamera(CameraUpdate(center = currentLocation.position, zoom = 15.0))
+    }
 
     // Create the MapView only once during this composition.
     val mapView = remember(context) {

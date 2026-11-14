@@ -74,6 +74,7 @@ dependencies {
     implementation("org.maplibre.gl:android-sdk:13.7.1")
     implementation("org.maplibre.compose:maplibre-compose:0.20.0") // Check for latest version
     implementation("org.maplibre.compose:location-runtime-gms:0.20.0") // Or standard platform locator
+    runtimeOnly("org.maplibre.compose:maplibre-compose-runtime-opengl-android:0.20.0")
     // datastore
     implementation("androidx.datastore:datastore-preferences:1.3.0")
 

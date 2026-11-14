@@ -3,6 +3,7 @@ package com.example.planetrackermobile
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.planetrackermobile.data.AircraftMapViewModel
 import com.example.planetrackermobile.ui.screens.SettingsScreen
 import com.example.planetrackermobile.ui.theme.PlaneTrackerTheme
 import com.example.yourapp.MapScreen
@@ -50,8 +53,9 @@ class MainActivity : AppCompatActivity() {
                         Box(
                             modifier = Modifier.weight(1f)
                         ) {
+                            val viewModel: AircraftMapViewModel = viewModel()
                             if (showMap) {
-                                MapScreen()
+                                MapScreen(viewModel)
                             } else {
                                 SettingsScreen()
                             }

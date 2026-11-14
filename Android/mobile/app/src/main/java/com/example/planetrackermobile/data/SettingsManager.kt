@@ -60,4 +60,19 @@ class SettingsManager(private val context: Context) {
             }
         }
     }
+
+    // custom getters
+    fun getRefreshInterval(): Flow<Long> {
+        return getString(
+            UPDATE_RATE,
+            "NORMAL"
+        ).map { rate ->
+            when (rate) {
+                "SLOW" -> 30000L
+                "NORMAL" -> 5000L
+                "FAST" -> 1000L
+                else -> 5000L
+            }
+        }
+    }
 }

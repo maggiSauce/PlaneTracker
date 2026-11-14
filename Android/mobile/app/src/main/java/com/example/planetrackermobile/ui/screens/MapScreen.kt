@@ -12,7 +12,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.planetrackermobile.data.Aircraft
+import com.example.planetrackermobile.data.AircraftMapViewModel
+import com.example.planetrackermobile.data.AircraftResponse
 import com.example.planetrackermobile.data.SettingsManager
 import com.example.planetrackermobile.data.SettingsOptions
 import org.maplibre.compose.camera.CameraPosition
@@ -38,7 +41,9 @@ private const val DEFAULT_MAP_URI = "https://tiles.openfreemap.org/styles/fiord"
 
 // TODO: read docs to add planes https://maplibre.org/maplibre-native/android/examples/location-component/
 @Composable
-fun MapScreen() {
+fun MapScreen(
+    viewModel: AircraftMapViewModel
+) {
     val context = LocalContext.current
     val settingsManager = SettingsManager(context)
 
@@ -47,39 +52,10 @@ fun MapScreen() {
         .collectAsState(initial = SettingsOptions.themesMap.keys.first())
     val mapUri = SettingsOptions.themesMap[selectedMapKey] ?: DEFAULT_MAP_URI
 
+    val planes by viewModel.aircraft.collectAsStateWithLifecycle()
+
     //mock planes
-    val planes by remember {
-        mutableStateOf(
-            listOf(
-                Aircraft(
-                    "c03bf5",
-                    "adsb_icao",
-                    "WJA536  ",
-                    "C-FWSI",
-                    "B737",
-                    "BOEING 737-700",
-                    8050.0,
-                    null,
-                    53.375198,
-                    -113.847787,
-                    287.6,
-                ),
-                Aircraft(
-                    "c063c0",
-                    "adsb_icao",
-                    "WJA536  ",
-                    "CWA935",
-                    "B350",
-                    "BEECHCRAFT Super King Air 350",
-                    19125.0,
-                    null,
-                    53.594009,
-                    -113.67586,
-                    342.5,
-                )
-            )
-        )
-    }
+//    val planes = AircraftResponse.getMockData().ac
 
     val planeFeatures = planes.map { aircraft: Aircraft ->
         Feature.fromGeometry(
@@ -91,7 +67,7 @@ fun MapScreen() {
             addStringProperty("flightId", aircraft.flight)
         }
     }
-    
+
     // initialize map state
     val mapState = rememberMapState(
         baseStyle = BaseStyle.Uri(mapUri),

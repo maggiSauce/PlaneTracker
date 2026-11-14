@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import com.example.planetrackermobile.data.Aircraft
 import com.example.planetrackermobile.data.SettingsManager
 import com.example.planetrackermobile.data.SettingsOptions
 import org.maplibre.compose.camera.CameraPosition
@@ -20,6 +21,7 @@ import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.format
 import org.maplibre.compose.expressions.dsl.span
+import org.maplibre.compose.expressions.dsl.textOffset
 import org.maplibre.compose.layers.CircleLayer
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.map.MaplibreMap
@@ -45,29 +47,51 @@ fun MapScreen() {
         .collectAsState(initial = SettingsOptions.themesMap.keys.first())
     val mapUri = SettingsOptions.themesMap[selectedMapKey] ?: DEFAULT_MAP_URI
 
-
-
-    // mock planes
+    //mock planes
     val planes by remember {
         mutableStateOf(
             listOf(
-                Triple("Flight 101", -113.50, 53.55),
-                Triple("Flight 888", -113.48, 53.53)
+                Aircraft(
+                    "c03bf5",
+                    "adsb_icao",
+                    "WJA536  ",
+                    "C-FWSI",
+                    "B737",
+                    "BOEING 737-700",
+                    8050.0,
+                    null,
+                    53.375198,
+                    -113.847787,
+                    287.6,
+                ),
+                Aircraft(
+                    "c063c0",
+                    "adsb_icao",
+                    "WJA536  ",
+                    "CWA935",
+                    "B350",
+                    "BEECHCRAFT Super King Air 350",
+                    19125.0,
+                    null,
+                    53.594009,
+                    -113.67586,
+                    342.5,
+                )
             )
         )
     }
 
-    val planeFeatures = planes.map { (id, lon, lat) ->
+    val planeFeatures = planes.map { aircraft: Aircraft ->
         Feature.fromGeometry(
-            Point.fromLngLat(lon, lat)
+            Point.fromLngLat(
+                aircraft.lon,
+                aircraft.lat,
+            )
         ).apply {
-            addStringProperty("flightId", id)
+            addStringProperty("flightId", aircraft.flight)
         }
     }
-
-    // 4. Transform plane positions into a reactive GeoJSON source
-
-
+    
     // initialize map state
     val mapState = rememberMapState(
         baseStyle = BaseStyle.Uri(mapUri),
@@ -96,7 +120,8 @@ fun MapScreen() {
             // in the future, consider making a MapTheme class to have a fallback for custom fonts
             textFont = const(listOf("Noto Sans Regular")),
             textSize = const(1.em),
-            textColor = const(Color.Black)
+            textColor = const(Color.Black),
+            textOffset = textOffset(15.dp, (-15).dp)
         )
 
         CircleLayer(

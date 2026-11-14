@@ -20,6 +20,7 @@ private val retrofit = Retrofit.Builder()
     .build()
 
 interface ADSBApiService {
+    // todo: add exception handling
     @GET("lat/{lat}/lon/{lon}/dist/{dist}")
     suspend fun getAircraftInArea(
         @Path("lat") lat: Double,

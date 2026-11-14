@@ -41,7 +41,7 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
                                 val serviceResult = ADSBApi.retrofitService.getAircraftInArea(
                                     lat = 53.49764590494395,
                                     lon = -113.61540474272716,
-                                    dist = 50,
+                                    dist = 200,
                                 )
                                 emit(serviceResult.ac ?: emptyList())
 

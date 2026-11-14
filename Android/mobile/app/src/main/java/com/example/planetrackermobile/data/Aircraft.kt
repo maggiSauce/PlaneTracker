@@ -52,16 +52,16 @@ data class AircraftResponse(
 
 @Serializable
 data class Aircraft(
-    val hex: String,
-    val type: String,
-    val flight: String,
+    val hex: String? = null,
+    val type: String? = null,
+    val flight: String? = null,
     @SerialName(value = "r")
-    val tailCode: String,
+    val tailCode: String? = null,
     @SerialName(value = "t")
-    val model: String,
+    val model: String? = null,
     val description: String? = null,    // safety if "description" is missing from json
     @SerialName(value = "alt_geom")
-    val altitude: Double,
+    val altitude: Double? = null,
     val category: String? = null,
     val lat: Double,
     val lon: Double,

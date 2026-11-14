@@ -1,5 +1,6 @@
 package com.example.planetrackermobile.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.example.planetrackermobile.data.SettingsManager
 import com.example.planetrackermobile.data.SettingsOptions
 import com.example.planetrackermobile.ui.theme.PlaneTrackerTheme
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @Composable
@@ -131,6 +133,11 @@ fun SettingsScreen() {
                                         SettingsManager.SELECTED_THEME,
                                         theme
                                     )
+                                    val selectedMapKey = settingsManager
+                                        .getString(SettingsManager.SELECTED_THEME, "null")
+                                        .first()
+                                    Log.d("MapDebug", "Selected style: $selectedMapKey")
+                                    Log.d("MapDebug", "Style URI: ${SettingsOptions.themesMap[selectedMapKey]}")
                                 }
                                 expanded = false
                             }

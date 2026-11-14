@@ -8,7 +8,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import com.example.planetrackermobile.data.SettingsManager
 import com.example.planetrackermobile.data.SettingsOptions
@@ -18,6 +20,7 @@ import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.format
 import org.maplibre.compose.expressions.dsl.span
+import org.maplibre.compose.layers.CircleLayer
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.map.rememberMapState
@@ -69,27 +72,38 @@ fun MapScreen() {
     val mapState = rememberMapState(
         baseStyle = BaseStyle.Uri(mapUri),
         initialCameraPosition = CameraPosition(
-            center = Position(longitude = -113.4938, latitude = 53.5461),
+            center = Position(
+                longitude = -113.4938,
+                latitude = 53.5461
+            ),
             zoom = 12.0
         )
     ) {
         val planeSource = rememberGeoJsonSource(
             data = GeoJsonData.JsonString(
-                FeatureCollection.fromFeatures(
-                    planeFeatures
-                ).toJson()
+                FeatureCollection.fromFeatures(planeFeatures).toJson()
             )
         )
 
+        // Draw a visible red circle for every aircraft.
         SymbolLayer(
-            id = "plane-layer",
+            id = "plane-labels",
             source = planeSource,
             textField = format(
-                span(
-                    feature["flightId"].asString()
-                )
+                span(feature["flightId"].asString())
             ),
-            textSize = const(12.0.em)
+            // remember, cannot use any font; this one is known to work
+            // in the future, consider making a MapTheme class to have a fallback for custom fonts
+            textFont = const(listOf("Noto Sans Regular")),
+            textSize = const(1.em),
+            textColor = const(Color.Black)
+        )
+
+        CircleLayer(
+            id = "plane-circles",
+            source = planeSource,
+            radius = const(8.dp),
+            color = const(Color.Red)
         )
     }
 

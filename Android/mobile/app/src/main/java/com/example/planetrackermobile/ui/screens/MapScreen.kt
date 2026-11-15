@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
@@ -24,6 +25,8 @@ import com.example.planetrackermobile.data.AircraftMapViewModel
 import com.example.planetrackermobile.data.SettingsManager
 import com.example.planetrackermobile.data.SettingsOptions
 import com.example.planetrackermobile.data.StaticSettings
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.expressions.dsl.asNumber
 import org.maplibre.compose.expressions.dsl.asString
@@ -114,7 +117,7 @@ fun MapScreen(
             textOffset = textOffset(15.dp, (-15).dp)
         )
 
-        SymbolLayer (
+        SymbolLayer(
             id = "plane-icons",
             source = planeSource,
             iconImage = image(
@@ -131,16 +134,19 @@ fun MapScreen(
     // Observe map camera changes
     val cameraPosition = mapState.cameraPosition
     LaunchedEffect(cameraPosition) {
-        cameraLatitude = cameraPosition.center.latitude
-        cameraLongitude = cameraPosition.center.longitude
-        cameraZoom = cameraPosition.zoom
-
-        viewModel.updateSearchLocation(
-            cameraLatitude,
-            cameraLongitude,
-            cameraZoom,
-            mapWidth
-        )
+        snapshotFlow {
+            mapState.cameraPosition
+        }
+            .distinctUntilChanged()
+            .debounce(250L)
+            .collect { cameraPosition ->
+                viewModel.updateSearchLocation(
+                    cameraPosition.center.latitude,
+                    cameraPosition.center.longitude,
+                    cameraPosition.zoom,
+                    mapWidth
+                )
+            }
     }
 
     // Display the map

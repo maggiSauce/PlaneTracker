@@ -5,27 +5,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.planetrackermobile.R
 import com.example.planetrackermobile.data.Aircraft
 import com.example.planetrackermobile.data.AircraftMapViewModel
-import com.example.planetrackermobile.data.AircraftResponse
 import com.example.planetrackermobile.data.SettingsManager
 import com.example.planetrackermobile.data.SettingsOptions
 import org.maplibre.compose.camera.CameraPosition
+import org.maplibre.compose.expressions.dsl.asNumber
 import org.maplibre.compose.expressions.dsl.asString
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.format
+import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.span
 import org.maplibre.compose.expressions.dsl.textOffset
-import org.maplibre.compose.layers.CircleLayer
+import org.maplibre.compose.expressions.value.IconRotationAlignment
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.map.rememberMapState
@@ -65,6 +67,7 @@ fun MapScreen(
             )
         ).apply {
             addStringProperty("flightId", aircraft.flight)
+            addNumberProperty("bearing", aircraft.dir)
         }
     }
 
@@ -100,11 +103,17 @@ fun MapScreen(
             textOffset = textOffset(15.dp, (-15).dp)
         )
 
-        CircleLayer(
-            id = "plane-circles",
+        SymbolLayer (
+            id = "plane-icons",
             source = planeSource,
-            radius = const(8.dp),
-            color = const(Color.Red)
+            iconImage = image(
+                painterResource(R.drawable.planeicon),
+                size = DpSize(32.dp, 32.dp)
+            ),
+            iconAllowOverlap = const(true),
+            iconIgnorePlacement = const(true),
+            iconRotate = feature["bearing"].asNumber(),
+            iconRotationAlignment = const(IconRotationAlignment.Map),
         )
     }
 

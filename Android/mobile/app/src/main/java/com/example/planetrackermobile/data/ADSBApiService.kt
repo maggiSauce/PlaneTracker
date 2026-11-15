@@ -30,6 +30,9 @@ interface ADSBApiService {
         @Path("lon") lon: Double,
         @Path("dist") dist: Int,
     ) : AircraftResponse
+
+    @GET("/v2/mil")
+    suspend fun getMilitaryAircraft() : AircraftResponse
 }
 
 object ADSBApi {

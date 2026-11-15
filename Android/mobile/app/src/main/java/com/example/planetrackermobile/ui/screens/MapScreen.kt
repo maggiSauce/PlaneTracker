@@ -1,15 +1,28 @@
 package com.example.yourapp
 
+import android.R.attr.onClick
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
@@ -27,6 +40,7 @@ import com.example.planetrackermobile.data.SettingsOptions
 import com.example.planetrackermobile.data.StaticSettings
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.expressions.dsl.asNumber
 import org.maplibre.compose.expressions.dsl.asString
@@ -58,15 +72,14 @@ fun MapScreen(
     val context = LocalContext.current
     val settingsManager = SettingsManager(context)
 
+    var showMilitaryAircraft by remember { mutableStateOf(false) }
+
     val selectedMapKey by settingsManager
         .getString(SettingsManager.SELECTED_THEME, SettingsOptions.themesMap.keys.first())
         .collectAsState(initial = SettingsOptions.themesMap.keys.first())
     val mapUri = SettingsOptions.themesMap[selectedMapKey] ?: DEFAULT_MAP_URI
 
     val planes by viewModel.aircraft.collectAsStateWithLifecycle()
-    var cameraLongitude = StaticSettings.DEFAULT_LONGITUDE
-    var cameraLatitude = StaticSettings.DEFAULT_LATITUDE
-    var cameraZoom = StaticSettings.DEFAULT_CAMERA_ZOOM
     var mapWidth by remember { mutableIntStateOf(0) }
     var mapHeight by remember { mutableIntStateOf(0) }
 
@@ -161,6 +174,24 @@ fun MapScreen(
                     mapWidth = size.width
                     mapHeight = size.height
                 }
+        )
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        Text(
+            text = "Show Military Aircraft",
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Switch(
+            checked = showMilitaryAircraft,
+            onCheckedChange = { newValue ->
+                Log.d("MapScreen", "ShowMilitaryAircraft: $newValue")
+                showMilitaryAircraft = newValue
+            }
         )
     }
 }

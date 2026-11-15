@@ -7,6 +7,9 @@ import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Path
 
+/*
+ * API reference: https://github.com/adsbfi/opendata
+ */
 private const val DEFAULT_BASE_URL = "https://opendata.adsb.fi/api/v3/"
 
 // configure json to ignore unknown keys so we don't crash if api returns extra data

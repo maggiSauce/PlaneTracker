@@ -13,6 +13,14 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
+object StaticSettings {
+    val DEFAULT_LATITUDE = 53.49764590494395
+    val DEFAULT_LONGITUDE = -113.61540474272716
+    val DEFAULT_SEARCH_DISTANCE = 2
+    val DEFAULT_REFRESH_INTERVAL = 10000L
+    val DEFAULT_CAMERA_ZOOM = 10.0
+}
+
 object SettingsOptions {
     // find more maps at https://makewithmaplibre.com/basemaps/
     val themesMap: Map<String, String> = mapOf(

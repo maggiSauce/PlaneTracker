@@ -3,10 +3,15 @@ package com.example.yourapp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
@@ -18,6 +23,7 @@ import com.example.planetrackermobile.data.Aircraft
 import com.example.planetrackermobile.data.AircraftMapViewModel
 import com.example.planetrackermobile.data.SettingsManager
 import com.example.planetrackermobile.data.SettingsOptions
+import com.example.planetrackermobile.data.StaticSettings
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.expressions.dsl.asNumber
 import org.maplibre.compose.expressions.dsl.asString
@@ -55,6 +61,11 @@ fun MapScreen(
     val mapUri = SettingsOptions.themesMap[selectedMapKey] ?: DEFAULT_MAP_URI
 
     val planes by viewModel.aircraft.collectAsStateWithLifecycle()
+    var cameraLongitude = StaticSettings.DEFAULT_LONGITUDE
+    var cameraLatitude = StaticSettings.DEFAULT_LATITUDE
+    var cameraZoom = StaticSettings.DEFAULT_CAMERA_ZOOM
+    var mapWidth by remember { mutableIntStateOf(0) }
+    var mapHeight by remember { mutableIntStateOf(0) }
 
     //mock planes
 //    val planes = AircraftResponse.getMockData().ac
@@ -76,10 +87,10 @@ fun MapScreen(
         baseStyle = BaseStyle.Uri(mapUri),
         initialCameraPosition = CameraPosition(
             center = Position(
-                longitude = -113.4938,
-                latitude = 53.5461
+                longitude = StaticSettings.DEFAULT_LONGITUDE,
+                latitude = StaticSettings.DEFAULT_LATITUDE
             ),
-            zoom = 12.0
+            zoom = StaticSettings.DEFAULT_CAMERA_ZOOM
         )
     ) {
         val planeSource = rememberGeoJsonSource(
@@ -117,13 +128,33 @@ fun MapScreen(
         )
     }
 
+    // Observe map camera changes
+    val cameraPosition = mapState.cameraPosition
+    LaunchedEffect(cameraPosition) {
+        cameraLatitude = cameraPosition.center.latitude
+        cameraLongitude = cameraPosition.center.longitude
+        cameraZoom = cameraPosition.zoom
+
+        viewModel.updateSearchLocation(
+            cameraLatitude,
+            cameraLongitude,
+            cameraZoom,
+            mapWidth
+        )
+    }
+
     // Display the map
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         MaplibreMap(
             state = mapState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .onSizeChanged { size ->
+                    mapWidth = size.width
+                    mapHeight = size.height
+                }
         )
     }
 }

@@ -3,9 +3,14 @@ package com.example.yourapp
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -47,15 +52,18 @@ import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.span
 import org.maplibre.compose.expressions.dsl.textOffset
 import org.maplibre.compose.expressions.value.IconRotationAlignment
+import org.maplibre.compose.interaction.ClickResult
+import org.maplibre.compose.interaction.MapInteractions
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.map.rememberMapState
 import org.maplibre.compose.sources.GeoJsonData
 import org.maplibre.compose.sources.rememberGeoJsonSource
 import org.maplibre.compose.style.BaseStyle
-import org.maplibre.geojson.Feature
+import org.maplibre.geojson.Feature as SpatialFeature
 import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.Point
+import org.maplibre.spatialk.geojson.Feature.Companion.getStringProperty
 import org.maplibre.spatialk.geojson.Position
 
 private const val DEFAULT_MAP_URI = "https://tiles.openfreemap.org/styles/fiord"
@@ -87,11 +95,17 @@ fun MapScreen(
     var mapWidth by remember { mutableIntStateOf(0) }
     var mapHeight by remember { mutableIntStateOf(0) }
 
+
+    var selectedFlightId by remember { mutableStateOf<String?>(null) }
+    var selectedAircraft = remember(planes, selectedFlightId) {
+        planes.find { it.flight == selectedFlightId }
+    }
+
     //mock planes
 //    val planes = AircraftResponse.getMockData().ac
 
     val planeFeatures = planes.map { aircraft: Aircraft ->
-        Feature.fromGeometry(
+        org.maplibre.geojson.Feature.fromGeometry(
             Point.fromLngLat(
                 aircraft.lon,
                 aircraft.lat,
@@ -111,7 +125,7 @@ fun MapScreen(
                 latitude = StaticSettings.DEFAULT_LATITUDE
             ),
             zoom = StaticSettings.DEFAULT_CAMERA_ZOOM
-        )
+        ),
     ) {
         val planeSource = rememberGeoJsonSource(
             data = GeoJsonData.JsonString(
@@ -145,6 +159,17 @@ fun MapScreen(
             iconIgnorePlacement = const(true),
             iconRotate = feature["bearing"].asNumber(),
             iconRotationAlignment = const(IconRotationAlignment.Map),
+            onClick = { features ->
+                val flightId = features.firstOrNull()?.getStringProperty("flightId")
+                if (flightId != null) {
+                    Log.d("MapScreen", "Plane clicked: $flightId")
+                    selectedFlightId = flightId
+                    ClickResult.Consume
+                } else {
+                    Log.d("MapScreen", "Plane clicked but flight Id Null")
+                    ClickResult.Pass
+                }
+            }
         )
     }
 
@@ -177,7 +202,21 @@ fun MapScreen(
                 .onSizeChanged { size ->
                     mapWidth = size.width
                     mapHeight = size.height
+                },
+            interactions = MapInteractions {
+                callbacks {
+                    click {
+                        onUnhandled { event ->
+                            event.position?.let {
+                                // code that runs when the map is clicked
+                                Log.d("MapScreen", "Map clicked, aircraft null")
+                                selectedFlightId     = null
+                            }
+                            ClickResult.Consume
+                        }
+                    }
                 }
+            }
         )
     }
 
@@ -198,5 +237,39 @@ fun MapScreen(
                 showMilitaryAircraft = newValue
             }
         )
+    }
+
+    // Overlay for selecting a plane; this code runs and renders when selectedAircraft is not null
+    selectedAircraft?.let { aircraft ->
+        AircraftInfoElement(
+            aircraft,
+            onDismiss = { selectedAircraft = null },
+            onActionClick = {
+                Log.d("MapScreen", "Track flight clicked: ${aircraft.flight}")
+            }
+        )
+    }
+}
+
+@Composable
+fun AircraftInfoElement(
+    aircraft: Aircraft,
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    onActionClick: () -> Unit
+) {
+    // https://developer.android.com/develop/ui/compose/components/card
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Flight: ${aircraft.flight}",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
     }
 }

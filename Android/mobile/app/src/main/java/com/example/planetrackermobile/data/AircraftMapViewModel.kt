@@ -8,6 +8,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -60,7 +61,10 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
 
                     settingsManager.getRefreshInterval()
                         .distinctUntilChanged()
-                        .flatMapLatest { interval ->
+                        .combine(_searchingForMilitary) { interval, isMilitary ->
+                            Pair(interval, isMilitary)
+                        }
+                        .flatMapLatest { (interval, isMilitary) ->
                             createApiPollingFlow(interval, _searchingForMilitary.value)
                         }
                 }.collect { aircraft ->

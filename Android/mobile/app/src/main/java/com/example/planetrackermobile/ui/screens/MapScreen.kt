@@ -113,6 +113,10 @@ fun MapScreen(
         ).apply {
             addStringProperty("flightId", aircraft.flight)
             addNumberProperty("bearing", aircraft.dir)
+            addStringProperty("tailCode", aircraft.tailCode)
+            addStringProperty("model", aircraft.model)
+            addNumberProperty("altitude", aircraft.altitude)
+            addStringProperty("description", aircraft.description)
         }
     }
 
@@ -259,6 +263,8 @@ fun AircraftInfoElement(
     onActionClick: () -> Unit
 ) {
     // https://developer.android.com/develop/ui/compose/components/card
+    val propertyTextStyle = MaterialTheme.typography.bodyMedium
+
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
@@ -268,7 +274,23 @@ fun AircraftInfoElement(
         ) {
             Text(
                 text = "Flight: ${aircraft.flight}",
-                style = MaterialTheme.typography.titleMedium
+                style = propertyTextStyle
+            )
+            Text(
+                text = "Tail Code: ${aircraft.tailCode}",
+                style = propertyTextStyle
+            )
+            Text(
+                text = "Model: ${aircraft.model}",
+                style = propertyTextStyle
+            )
+            Text(
+                text = "Altitude: ${aircraft.altitude}",
+                style = propertyTextStyle
+            )
+            Text(
+                text = "Description: ${aircraft.description}",
+                style = propertyTextStyle
             )
         }
     }

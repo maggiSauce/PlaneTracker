@@ -194,6 +194,7 @@ fun MapScreen(
             checked = showMilitaryAircraft,
             onCheckedChange = { newValue ->
                 Log.d("MapScreen", "ShowMilitaryAircraft: $newValue")
+                viewModel.toggleSearchForMilitary()
                 showMilitaryAircraft = newValue
             }
         )

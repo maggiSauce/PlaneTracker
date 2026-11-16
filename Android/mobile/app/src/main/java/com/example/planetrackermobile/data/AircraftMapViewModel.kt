@@ -5,9 +5,11 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -18,7 +20,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 const val EQUATORIAL_METRES_PER_PIXEL_AT_ZOOM_0 = 156543.03392
 const val METRES_PER_NAUTICAL_MILE = 1852
-const val QUARTER_WORLD_ZOOM_ZERO_NM  = EQUATORIAL_METRES_PER_PIXEL_AT_ZOOM_0 / METRES_PER_NAUTICAL_MILE / 4
+const val QUARTER_WORLD_ZOOM_ZERO_NM =
+    EQUATORIAL_METRES_PER_PIXEL_AT_ZOOM_0 / METRES_PER_NAUTICAL_MILE / 4
 
 class AircraftMapViewModel(application: Application) : AndroidViewModel(application) {
     private val settingsManager = SettingsManager(application)
@@ -38,6 +41,9 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
     private val _isPollingEnabled = MutableStateFlow(false)
     val isPollingEnabled = _isPollingEnabled.asStateFlow()
 
+    private val _searchingForMilitary = MutableStateFlow(false)
+    val searchingForMilitary = _searchingForMilitary.asStateFlow()
+
     init {
         startLocationUpdates()
     }
@@ -47,35 +53,50 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
             _isPollingEnabled
 //                .distinctUntilChanged()
                 .flatMapLatest { enabled ->
-                    if(!enabled) {
-                        flow {/* does nothing; halts loop */}
-                    } else {
-                        settingsManager.getRefreshInterval()
-                            .distinctUntilChanged()
-                            .flatMapLatest { interval ->
-                                flow {
-                                    while (true) {
-                                        try {
-                                            Log.d("AircraftViewModel", "Fetching aircraftData lat: ${_latitude.value} lon: ${_longitude.value} dist: ${_searchDistance.value}")
-                                            val serviceResult = ADSBApi.retrofitService.getAircraftInArea(
-                                                lat = _latitude.value,
-                                                lon = _longitude.value,
-                                                dist = _searchDistance.value,
-                                            )
-                                            emit(serviceResult.ac ?: emptyList())
-
-                                            Log.d("AircraftViewModel", "Found ${serviceResult.ac.size}")
-                                        } catch (ex: Exception) {
-                                            Log.d("AircraftViewModel", "Error fetching data: $ex")
-                                        }
-                                        delay(interval.milliseconds)
-                                    }
-                                }
-                            }
+                    if (!enabled) {
+                        // halt emissions
+                        return@flatMapLatest emptyFlow()
                     }
+
+                    settingsManager.getRefreshInterval()
+                        .distinctUntilChanged()
+                        .flatMapLatest { interval ->
+                            createApiPollingFlow(interval, _searchingForMilitary.value)
+                        }
                 }.collect { aircraft ->
                     _aircraft.value = aircraft
                 }
+        }
+    }
+
+    private fun createApiPollingFlow(
+        interval: Long,
+        isMilitary: Boolean
+    ): Flow<List<Aircraft>> = flow {
+        while (true) {
+            try {
+                Log.d(
+                    "AircraftViewModel",
+                    "Fetching aircraftData lat: ${_latitude.value} lon: ${_longitude.value} dist: ${_searchDistance.value} isMilitary: ${_searchingForMilitary.value}"
+                )
+
+                val serviceResult = if (isMilitary) {
+                    Log.d("AircraftViewModel", "Fetching MILITARY aircraft")
+                    ADSBApi.retrofitService.getMilitaryAircraft()
+                } else {
+                    ADSBApi.retrofitService.getAircraftInArea(
+                        lat = _latitude.value,
+                        lon = _longitude.value,
+                        dist = _searchDistance.value,
+                    )
+                }
+                emit(serviceResult.ac ?: emptyList())
+
+                Log.d("AircraftViewModel", "Found ${serviceResult.ac.size}")
+            } catch (ex: Exception) {
+                Log.d("AircraftViewModel", "Error fetching data: $ex")
+            }
+            delay(interval.milliseconds)
         }
     }
 
@@ -84,7 +105,8 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
      * Called when user moves/manipulates the map camera
      */
     fun updateSearchLocation(lat: Double, lon: Double, zoom: Double, mapWidth: Int) {
-        var radiusNM = ((QUARTER_WORLD_ZOOM_ZERO_NM * cos(Math.toRadians(lat)) * mapWidth) / (2.0).pow(zoom)).roundToInt()
+        var radiusNM =
+            ((QUARTER_WORLD_ZOOM_ZERO_NM * cos(Math.toRadians(lat)) * mapWidth) / (2.0).pow(zoom)).roundToInt()
         if (radiusNM <= 0) {
             radiusNM = 5;
         } else if (radiusNM > 230) {
@@ -106,4 +128,10 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
         _isPollingEnabled.value = false
         Log.d("AircraftViewModel", "Stopped Polling")
     }
+
+    fun toggleSearchForMilitary() {
+        _searchingForMilitary.value = !searchingForMilitary.value
+        Log.d("AircraftViewModel", "Searching for military: ${_searchingForMilitary.value}")
+    }
+
 }

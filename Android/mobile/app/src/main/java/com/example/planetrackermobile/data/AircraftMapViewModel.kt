@@ -30,10 +30,13 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
     val latitude = _latitude.asStateFlow()
 
     private val _longitude = MutableStateFlow(StaticSettings.DEFAULT_LONGITUDE)
-    val longitude = _latitude.asStateFlow()
+    val longitude = _longitude.asStateFlow()
 
     private val _searchDistance = MutableStateFlow(StaticSettings.DEFAULT_SEARCH_DISTANCE)
     val searchDistance = _searchDistance.asStateFlow()
+
+    private val _isPollingEnabled = MutableStateFlow(false)
+    val isPollingEnabled = _isPollingEnabled.asStateFlow()
 
     init {
         startLocationUpdates()
@@ -41,29 +44,36 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
 
     private fun startLocationUpdates() {
         viewModelScope.launch {
-            settingsManager.getRefreshInterval()
-                .distinctUntilChanged()
-                .flatMapLatest { interval ->
-                    flow {
-                        while (true) {
-                            try {
-                                Log.d("AircraftViewModel", "Fetching aircraftData lat: ${_latitude.value} lon: ${_longitude.value} dist: ${_searchDistance.value}")
-                                val serviceResult = ADSBApi.retrofitService.getAircraftInArea(
-                                    lat = _latitude.value,
-                                    lon = _longitude.value,
-                                    dist = _searchDistance.value,
-                                )
-                                emit(serviceResult.ac ?: emptyList())
+            _isPollingEnabled
+//                .distinctUntilChanged()
+                .flatMapLatest { enabled ->
+                    if(!enabled) {
+                        flow {/* does nothing; halts loop */}
+                    } else {
+                        settingsManager.getRefreshInterval()
+                            .distinctUntilChanged()
+                            .flatMapLatest { interval ->
+                                flow {
+                                    while (true) {
+                                        try {
+                                            Log.d("AircraftViewModel", "Fetching aircraftData lat: ${_latitude.value} lon: ${_longitude.value} dist: ${_searchDistance.value}")
+                                            val serviceResult = ADSBApi.retrofitService.getAircraftInArea(
+                                                lat = _latitude.value,
+                                                lon = _longitude.value,
+                                                dist = _searchDistance.value,
+                                            )
+                                            emit(serviceResult.ac ?: emptyList())
 
-                                Log.d("AircraftViewModel", "Found ${serviceResult.ac.size}")
-                            } catch (ex: Exception) {
-                                Log.d("AircraftViewModel", "Error fetching data: $ex")
+                                            Log.d("AircraftViewModel", "Found ${serviceResult.ac.size}")
+                                        } catch (ex: Exception) {
+                                            Log.d("AircraftViewModel", "Error fetching data: $ex")
+                                        }
+                                        delay(interval.milliseconds)
+                                    }
+                                }
                             }
-                            delay(interval.milliseconds)
-                        }
                     }
-                }
-                .collect { aircraft ->
+                }.collect { aircraft ->
                     _aircraft.value = aircraft
                 }
         }
@@ -85,5 +95,15 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
         _longitude.value = lon;
         _searchDistance.value = radiusNM;
         Log.d("AircraftViewModel", "Search location updated ($lon, $lat) $radiusNM NM zoom: $zoom")
+    }
+
+    fun startPolling() {
+        _isPollingEnabled.value = true
+        Log.d("AircraftViewModel", "Started Polling")
+    }
+
+    fun stopPolling() {
+        _isPollingEnabled.value = false
+        Log.d("AircraftViewModel", "Stopped Polling")
     }
 }

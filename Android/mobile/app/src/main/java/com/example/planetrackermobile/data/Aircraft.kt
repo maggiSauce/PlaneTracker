@@ -63,8 +63,8 @@ data class Aircraft(
     @SerialName(value = "alt_geom")
     val altitude: Double? = null,
     val category: String? = null,
-    val lat: Double,
-    val lon: Double,
-    val dir: Double
+    val lat: Double = 25.047670775667918,
+    val lon: Double = -71.73367637651693,
+    val dir: Double = 0.0
 )
 

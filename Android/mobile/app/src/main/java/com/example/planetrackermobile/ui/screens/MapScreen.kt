@@ -27,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.planetrackermobile.R
 import com.example.planetrackermobile.data.Aircraft
@@ -66,6 +67,14 @@ fun MapScreen(
 ) {
     val context = LocalContext.current
     val settingsManager = SettingsManager(context)
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.startPolling()
+
+        onPauseOrDispose {
+            viewModel.stopPolling()
+        }
+    }
 
     var showMilitaryAircraft by remember { mutableStateOf(false) }
 

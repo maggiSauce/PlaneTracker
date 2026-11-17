@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +26,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -33,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.example.planetrackermobile.R
 import com.example.planetrackermobile.data.Aircraft
 import com.example.planetrackermobile.data.AircraftMapViewModel
@@ -346,6 +350,7 @@ fun MapScreen(
     // Overlay for selecting a plane; this code runs and renders when selectedAircraft is not null
     selectedAircraft?.let { aircraft ->
         AircraftInfoElement(
+            viewModel,
             aircraft,
             onDismiss = {
                 selectedFlightId = null
@@ -361,6 +366,7 @@ fun MapScreen(
 
 @Composable
 fun AircraftInfoElement(
+    viewModel: AircraftMapViewModel,
     aircraft: Aircraft,
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
@@ -369,6 +375,14 @@ fun AircraftInfoElement(
     // https://developer.android.com/develop/ui/compose/components/card
     val propertyTextStyle = MaterialTheme.typography.bodyMedium
 
+    // 1. Trigger the load once when this aircraft's tailCode changes
+    LaunchedEffect(aircraft.tailCode) {
+        viewModel.loadAircraftImage(aircraft.tailCode)
+    }
+
+    // 2. Observe the image URL reactively from the ViewModel
+    val imageUri by viewModel.currentImageUrl.collectAsState()
+
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
@@ -376,6 +390,12 @@ fun AircraftInfoElement(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+            AsyncImage(
+                model = imageUri,
+                contentDescription = "Aircraft Image",
+                modifier = modifier.size(200.dp),
+                contentScale = ContentScale.Crop
+            )
             Text(
                 text = "Flight Number: ${aircraft.flight}",
                 style = propertyTextStyle

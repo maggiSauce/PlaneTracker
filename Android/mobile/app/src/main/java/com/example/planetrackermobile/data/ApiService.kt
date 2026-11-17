@@ -37,7 +37,7 @@ interface ADSBApiService {
 
 // docs at: https://www.jetapi.dev/querybuilder
 interface JetApiService {
-    @GET("api/")
+    @GET("api")
     suspend fun getAircraftPhotos(
         @Query("reg") registration: String,
         @Query("photos") numPhotos: Int = 1,

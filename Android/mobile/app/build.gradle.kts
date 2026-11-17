@@ -79,6 +79,11 @@ dependencies {
     // datastore
     implementation("androidx.datastore:datastore-preferences:1.3.0")
 
+    //    images
+    implementation("io.coil-kt.coil3:coil-compose:3.1.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
+
+
     // testing
     testImplementation("com.squareup.okhttp3:mockwebserver:5.5.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")

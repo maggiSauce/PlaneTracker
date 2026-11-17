@@ -59,7 +59,7 @@ data class Aircraft(
     val tailCode: String? = null,
     @SerialName(value = "t")
     val model: String? = null,
-    val description: String? = null,    // safety if "description" is missing from json
+    val desc: String? = null,    // safety if "description" is missing from json
     @SerialName(value = "alt_geom")
     val altitude: Double? = null,
     val category: String? = null,

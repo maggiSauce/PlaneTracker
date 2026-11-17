@@ -1,6 +1,7 @@
 package com.example.yourapp
 
 import android.util.Log
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,9 +9,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -25,10 +26,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -43,6 +46,7 @@ import com.example.planetrackermobile.data.StaticSettings
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.maplibre.compose.camera.CameraPosition
+import org.maplibre.compose.camera.CameraUpdate
 import org.maplibre.compose.expressions.dsl.asNumber
 import org.maplibre.compose.expressions.dsl.asString
 import org.maplibre.compose.expressions.dsl.const
@@ -60,7 +64,6 @@ import org.maplibre.compose.map.rememberMapState
 import org.maplibre.compose.sources.GeoJsonData
 import org.maplibre.compose.sources.rememberGeoJsonSource
 import org.maplibre.compose.style.BaseStyle
-import org.maplibre.geojson.Feature as SpatialFeature
 import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.Point
 import org.maplibre.spatialk.geojson.Feature.Companion.getStringProperty
@@ -76,15 +79,6 @@ fun MapScreen(
     val context = LocalContext.current
     val settingsManager = SettingsManager(context)
 
-    LifecycleResumeEffect(Unit) {
-        viewModel.startPolling()
-
-        onPauseOrDispose {
-            viewModel.stopPolling()
-        }
-    }
-
-    var showMilitaryAircraft by remember { mutableStateOf(false) }
 
     val selectedMapKey by settingsManager
         .getString(SettingsManager.SELECTED_THEME, SettingsOptions.themesMap.keys.first())
@@ -98,8 +92,25 @@ fun MapScreen(
 
     var selectedFlightId by remember { mutableStateOf<String?>(null) }
     var selectedAircraft = remember(planes, selectedFlightId) {
-        planes.find { it.flight == selectedFlightId }
+        selectedFlightId?.let { id ->
+            planes.find { it.flight == id }
+        }
     }
+
+    var showMilitaryAircraft by remember { mutableStateOf(false) }
+    var isTrackingAircraft by remember { mutableStateOf(false) }
+    var isZoomedOnAircraft by remember { mutableStateOf(false) }
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.startPolling()
+
+        onPauseOrDispose {
+            selectedFlightId = null;
+            selectedAircraft = null
+            viewModel.stopPolling()
+        }
+    }
+
 
     //mock planes
 //    val planes = AircraftResponse.getMockData().ac
@@ -113,10 +124,6 @@ fun MapScreen(
         ).apply {
             addStringProperty("flightId", aircraft.flight)
             addNumberProperty("bearing", aircraft.dir)
-            addStringProperty("tailCode", aircraft.tailCode)
-            addStringProperty("model", aircraft.model)
-            addNumberProperty("altitude", aircraft.altitude)
-            addStringProperty("description", aircraft.description)
         }
     }
 
@@ -137,7 +144,20 @@ fun MapScreen(
             )
         )
 
-        // Draw a visible red circle for every aircraft.
+        val trackingFeature = selectedFlightId?.let { flightId ->
+            planeFeatures.filter { feature ->
+                val property = feature.getProperty("flightId")
+
+                property != null && !property.isJsonNull && property.asString == flightId
+            }
+        } ?: emptyList()
+        val trackingPlaneSource = rememberGeoJsonSource(
+            data = GeoJsonData.JsonString(
+                FeatureCollection.fromFeatures(trackingFeature).toJson()
+            )
+        )
+
+
         SymbolLayer(
             id = "plane-labels",
             source = planeSource,
@@ -166,14 +186,42 @@ fun MapScreen(
             onClick = { features ->
                 val flightId = features.firstOrNull()?.getStringProperty("flightId")
                 if (flightId != null) {
-                    Log.d("MapScreen", "Plane clicked: $flightId")
                     selectedFlightId = flightId
+                    isTrackingAircraft = true
                     ClickResult.Consume
                 } else {
-                    Log.d("MapScreen", "Plane clicked but flight Id Null")
                     ClickResult.Pass
                 }
             }
+        )
+
+        val trackingSize = if(isZoomedOnAircraft) {
+            DpSize(75.dp, 75.dp)
+        } else {
+            DpSize(30.dp, 30.dp)
+        }
+        SymbolLayer(
+            id = "tracking-plane-icon",
+            source = trackingPlaneSource,
+            iconImage = image(
+                painterResource(R.drawable.planeicon),
+                size = trackingSize
+            ),
+            iconAllowOverlap = const(true),
+            iconIgnorePlacement = const(true),
+            iconRotate = feature["bearing"].asNumber(),
+            iconRotationAlignment = const(IconRotationAlignment.Map),
+        )
+
+        SymbolLayer(
+            id = "tracking-plane-crosshair",
+            source = trackingPlaneSource,
+            iconImage = image(
+                painterResource(R.drawable.selection_crosshair),
+                size = trackingSize
+            ),
+            iconAllowOverlap = const(true),
+            iconIgnorePlacement = const(true)
         )
     }
 
@@ -195,6 +243,43 @@ fun MapScreen(
             }
     }
 
+    // snap to selected plane
+    LaunchedEffect(selectedFlightId) {
+        val aircraft = selectedAircraft ?: return@LaunchedEffect
+        isZoomedOnAircraft = true
+
+        mapState.animateCamera(
+            update = CameraUpdate(
+                center = Position(
+                    longitude = aircraft.lon,
+                    latitude = aircraft.lat
+                ),
+                zoom = 10.0
+            )
+        )
+    }
+
+    // track selected plane
+    LaunchedEffect(
+        selectedFlightId,
+        selectedAircraft?.lon,
+        selectedAircraft?.lat,
+        isTrackingAircraft,
+    ) {
+        if (!isTrackingAircraft) return@LaunchedEffect
+
+        val aircraft = selectedAircraft ?: return@LaunchedEffect
+
+        mapState.animateCamera(
+            update = CameraUpdate(
+                center = Position(
+                    longitude = aircraft.lon,
+                    latitude = aircraft.lat
+                ),
+            )
+        )
+    }
+
     // Display the map
     Box(
         modifier = Modifier.fillMaxSize()
@@ -208,13 +293,27 @@ fun MapScreen(
                     mapHeight = size.height
                 },
             interactions = MapInteractions {
+                camera {
+                    pan {
+                        onStart {
+                            isTrackingAircraft = false
+                        }
+                    }
+                    zoom {
+                        onStart {
+                            isZoomedOnAircraft = false
+                        }
+                    }
+                }
+
                 callbacks {
                     click {
                         onUnhandled { event ->
                             event.position?.let {
                                 // code that runs when the map is clicked
-                                Log.d("MapScreen", "Map clicked, aircraft null")
-                                selectedFlightId     = null
+                                selectedFlightId = null
+                                isTrackingAircraft = false
+                                isZoomedOnAircraft = false
                             }
                             ClickResult.Consume
                         }
@@ -247,7 +346,11 @@ fun MapScreen(
     selectedAircraft?.let { aircraft ->
         AircraftInfoElement(
             aircraft,
-            onDismiss = { selectedAircraft = null },
+            onDismiss = {
+                selectedFlightId = null
+                isTrackingAircraft = false
+                isZoomedOnAircraft = false
+            },
             onActionClick = {
                 Log.d("MapScreen", "Track flight clicked: ${aircraft.flight}")
             }
@@ -289,9 +392,10 @@ fun AircraftInfoElement(
                 style = propertyTextStyle
             )
             Text(
-                text = "Description: ${aircraft.description}",
+                text = "Description: ${aircraft.desc}",
                 style = propertyTextStyle
             )
         }
     }
 }
+

@@ -97,6 +97,7 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
                 emit(serviceResult.ac ?: emptyList())
 
                 Log.d("AircraftViewModel", "Found ${serviceResult.ac.size}")
+                Log.d("AircraftMapViewModel", "${serviceResult.ac}")
             } catch (ex: Exception) {
                 Log.d("AircraftViewModel", "Error fetching data: $ex")
             }

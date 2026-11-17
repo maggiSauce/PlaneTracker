@@ -5,15 +5,15 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class AircraftResponse(
+data class ADSBApiResponse(
     val total: Int?,
     val ctime: Long?,
     val ptime: Long?,
     val ac: List<Aircraft> = emptyList()
 ) {
     companion object {
-        fun getMockData(): AircraftResponse {
-            return AircraftResponse(
+        fun getMockData(): ADSBApiResponse {
+            return ADSBApiResponse(
                 total = 2,
                 ctime =  1789615524000,
                 ptime =  0,
@@ -49,6 +49,20 @@ data class AircraftResponse(
         }
     }
 }
+
+@Serializable
+data class ImageResponse(
+    val image: String? = null,
+    val thumbnail: String? = null,
+    val airline: String? = null,
+    val aircraft: String? = null
+)
+@Serializable
+data class JetApiResponse(
+    @SerialName(value = "Reg")
+    val registration: String? = null,
+    val images: List<ImageResponse>? = emptyList<ImageResponse>()
+)
 
 @Serializable
 data class Aircraft(

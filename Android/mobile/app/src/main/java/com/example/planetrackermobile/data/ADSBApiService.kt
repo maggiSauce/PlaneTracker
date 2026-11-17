@@ -6,21 +6,21 @@ import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 /*
  * API reference: https://github.com/adsbfi/opendata
  */
-private const val DEFAULT_BASE_URL = "https://opendata.adsb.fi/api/"
+private const val ADSBAPI_BASE_URL = "https://opendata.adsb.fi/api/"
+private const val JETAPI_BASE_URL = "https://www.jetapi.dev/"
 
 // configure json to ignore unknown keys so we don't crash if api returns extra data
 private val json = Json {
     ignoreUnknownKeys = true
 }
 
-private val retrofit = Retrofit.Builder()
-    .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-    .baseUrl(DEFAULT_BASE_URL)
-    .build()
+private val adsbRetrofit = createRetrofit(ADSBAPI_BASE_URL)
+private val jetApiRetrofit = createRetrofit(JETAPI_BASE_URL)
 
 interface ADSBApiService {
     // todo: add exception handling
@@ -29,14 +29,41 @@ interface ADSBApiService {
         @Path("lat") lat: Double,
         @Path("lon") lon: Double,
         @Path("dist") dist: Int,
-    ) : AircraftResponse
+    ): ADSBApiResponse
 
     @GET("v2/mil")
-    suspend fun getMilitaryAircraft() : AircraftResponse
+    suspend fun getMilitaryAircraft(): ADSBApiResponse
 }
 
-object ADSBApi {
-    val retrofitService : ADSBApiService by lazy {
-        retrofit.create(ADSBApiService::class.java)
+// docs at: https://www.jetapi.dev/querybuilder
+interface JetApiService {
+    @GET("api/")
+    suspend fun getAircraftPhotos(
+        @Query("reg") registration: String,
+        @Query("photos") numPhotos: Int = 1,
+        @Query("only_jp") onlyJP: Boolean = true
+    ): JetApiResponse
+}
+
+// Centralized API access
+// example usage:val aircraft = PlaneTrackerApi.adsbService
+//    .getAircraftInArea(53.5, -113.5, 50)
+//
+//val photos = PlaneTrackerApi.jetService
+//    .getAircraftPhotos("C-FCYX")
+object PlaneTrackerAPIService {
+    val adsbService: ADSBApiService by lazy {
+        adsbRetrofit.create(ADSBApiService::class.java)
     }
+
+    val jetService: JetApiService by lazy {
+        jetApiRetrofit.create(JetApiService::class.java)
+    }
+}
+
+private fun createRetrofit(baseUrl: String): Retrofit {
+    return Retrofit.Builder()
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+        .baseUrl(baseUrl)
+        .build()
 }

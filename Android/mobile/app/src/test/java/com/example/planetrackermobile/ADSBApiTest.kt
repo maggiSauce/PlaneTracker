@@ -1,6 +1,6 @@
 package com.example.planetrackermobile
 
-import com.example.planetrackermobile.data.ADSBApi
+import com.example.planetrackermobile.data.PlaneTrackerAPIService
 import junit.framework.TestCase.assertNotNull
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
@@ -14,7 +14,7 @@ class ADSBApiTest {
         val dist = 50
 
         try {
-            val response = ADSBApi.retrofitService.getAircraftInArea(lat, lon, dist)
+            val response = PlaneTrackerAPIService.retrofitService.getAircraftInArea(lat, lon, dist)
             println("Successfully fetched ${response.ac?.size} aircraft!")
             println("Response: ${response}")
             assertNotNull(response)

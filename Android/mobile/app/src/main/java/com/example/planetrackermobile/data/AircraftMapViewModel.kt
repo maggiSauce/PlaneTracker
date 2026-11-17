@@ -86,9 +86,9 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
 
                 val serviceResult = if (isMilitary) {
                     Log.d("AircraftViewModel", "Fetching MILITARY aircraft")
-                    ADSBApi.retrofitService.getMilitaryAircraft()
+                    PlaneTrackerAPIService.retrofitService.getMilitaryAircraft()
                 } else {
-                    ADSBApi.retrofitService.getAircraftInArea(
+                    PlaneTrackerAPIService.retrofitService.getAircraftInArea(
                         lat = _latitude.value,
                         lon = _longitude.value,
                         dist = _searchDistance.value,

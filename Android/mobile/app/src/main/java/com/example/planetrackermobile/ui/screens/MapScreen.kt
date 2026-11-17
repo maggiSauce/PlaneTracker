@@ -123,9 +123,19 @@ fun MapScreen(
             )
         ).apply {
             addStringProperty("flightId", aircraft.flight)
+            addStringProperty("cleanFlightId", aircraft.flight?.trim() ?: "")
             addNumberProperty("bearing", aircraft.dir)
+            addStringProperty("model", aircraft.model)
         }
     }
+
+    val trackingFeature = selectedFlightId?.let { flightId ->
+        planeFeatures.filter { feature ->
+            val property = feature.getProperty("flightId")
+
+            property != null && !property.isJsonNull && property.asString == flightId
+        }
+    } ?: emptyList()
 
     // initialize map state
     val mapState = rememberMapState(
@@ -144,13 +154,6 @@ fun MapScreen(
             )
         )
 
-        val trackingFeature = selectedFlightId?.let { flightId ->
-            planeFeatures.filter { feature ->
-                val property = feature.getProperty("flightId")
-
-                property != null && !property.isJsonNull && property.asString == flightId
-            }
-        } ?: emptyList()
         val trackingPlaneSource = rememberGeoJsonSource(
             data = GeoJsonData.JsonString(
                 FeatureCollection.fromFeatures(trackingFeature).toJson()
@@ -162,7 +165,9 @@ fun MapScreen(
             id = "plane-labels",
             source = planeSource,
             textField = format(
-                span(feature["flightId"].asString())
+                span(feature["cleanFlightId"].asString()),
+                span(" | "),
+                span(feature["model"].asString())
             ),
             // remember, cannot use any font; this one is known to work
             // in the future, consider making a MapTheme class to have a fallback for custom fonts
@@ -376,7 +381,7 @@ fun AircraftInfoElement(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Flight: ${aircraft.flight}",
+                text = "Flight Number: ${aircraft.flight}",
                 style = propertyTextStyle
             )
             Text(
@@ -384,15 +389,12 @@ fun AircraftInfoElement(
                 style = propertyTextStyle
             )
             Text(
-                text = "Model: ${aircraft.model}",
+                // description is actually the name of the aircraft model
+                text = "Model: ${aircraft.desc}",
                 style = propertyTextStyle
             )
             Text(
-                text = "Altitude: ${aircraft.altitude}",
-                style = propertyTextStyle
-            )
-            Text(
-                text = "Description: ${aircraft.desc}",
+                text = "Altitude: ${aircraft.altitude} FT",
                 style = propertyTextStyle
             )
         }

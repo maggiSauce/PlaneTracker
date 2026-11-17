@@ -67,19 +67,6 @@ fun SettingsScreen() {
     )
         .collectAsState(initial = SettingsOptions.updateRates.first())
 
-    val selectedSearchRange by settingsManager.getInt(
-        SettingsManager.SEARCH_RANGE_IN_NMs,
-        50
-    )
-        .collectAsState(50)
-
-    val selectedSearchRangeIcon by settingsManager.getString(
-        SettingsManager.SEARCH_RANGE_ICON,
-        SettingsOptions.updateRates.first()
-    )
-        .collectAsState(initial = SettingsOptions.searchRangeIcons.first())
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -188,39 +175,6 @@ fun SettingsScreen() {
                         )
                     ) {
                         Text(text = SelectedRate)
-                    }
-                }
-            }
-        }
-
-        // Search Range
-        Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Text(
-                text = "Search Range",
-                style = MaterialTheme.typography.bodyLarge
-            )
-            SingleChoiceSegmentedButtonRow(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                SettingsOptions.searchRangeIcons.forEach { selectedRangeIcon ->
-                    SegmentedButton(
-                        selected = selectedSearchRangeIcon == selectedRangeIcon,
-                        onClick = {
-                            scope.launch {
-                                settingsManager.saveString(
-                                    SettingsManager.SEARCH_RANGE_ICON,
-                                    selectedRangeIcon
-                                )
-                            }
-                        },
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = SettingsOptions.searchRangeIcons.indexOf(selectedRangeIcon),
-                            count = SettingsOptions.searchRangeIcons.size
-                        )
-                    ) {
-                        Text(text = selectedRangeIcon)
                     }
                 }
             }

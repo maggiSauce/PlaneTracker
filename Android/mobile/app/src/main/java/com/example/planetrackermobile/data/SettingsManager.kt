@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +28,6 @@ object SettingsOptions {
         "DARK" to "https://styles.maptoolkit.org/dark.json",
     )
     val updateRates = listOf("SLOW", "NORMAL", "FAST")
-    val searchRangeIcons = listOf("CLOSE", "NORMAL", "FAR")
 }
 
 class SettingsManager(private val context: Context) {
@@ -37,8 +35,6 @@ class SettingsManager(private val context: Context) {
         val SELECTED_THEME = stringPreferencesKey("selected_theme")
         val DARK_MODE_ENABLED = booleanPreferencesKey("darkModeEnabled")
         val UPDATE_RATE = stringPreferencesKey("updateRate")
-        val SEARCH_RANGE_IN_NMs = intPreferencesKey("searchRangeInNMs")
-        val SEARCH_RANGE_ICON = stringPreferencesKey("searchRangeIcon")
     }
 
     suspend fun saveString(key: Preferences.Key<String>, value: String) {

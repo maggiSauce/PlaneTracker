@@ -24,7 +24,11 @@ const val METRES_PER_NAUTICAL_MILE = 1852
 const val QUARTER_WORLD_ZOOM_ZERO_NM =
     EQUATORIAL_METRES_PER_PIXEL_AT_ZOOM_0 / METRES_PER_NAUTICAL_MILE / 4
 
-class AircraftMapViewModel(application: Application) : AndroidViewModel(application) {
+class AircraftMapViewModel(
+    application: Application,
+    private val imageRepository: ImageRepository,
+//    aircraftRepository: AircraftRepository,
+) : AndroidViewModel(application) {
     private val settingsManager = SettingsManager(application)
 
     private val _aircraft = MutableStateFlow<List<Aircraft>>(emptyList())
@@ -105,35 +109,35 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
 
 
     /// API CALLS
-    private suspend fun fetchAircraft(
-        latitude: Double,
-        longitude: Double,
-        distance: Int,
-        isMilitary: Boolean
-    ): List<Aircraft> {
-        val serviceResult = if (isMilitary) {
-            PlaneTrackerAPIService.adsbService.getMilitaryAircraft()
-        } else {
-            PlaneTrackerAPIService.adsbService.getAircraftInArea(
-                lat = latitude,
-                lon = longitude,
-                dist = distance
-            )
-        }
-
-        return serviceResult.ac ?: emptyList()
-    }
-
-    private suspend fun fetchAircraftImage(registration: String): List<ImageResponse> {
-        Log.d("AircraftViewModel", "Fetching aircraft image for registration: $registration")
-
-        val jetApiResponse =
-            PlaneTrackerAPIService.jetService.getAircraftPhotos(registration = registration)
-
-        Log.d("AircraftViewModel", "$jetApiResponse")
-
-        return jetApiResponse.images ?: emptyList()
-    }
+//    private suspend fun fetchAircraft(
+//        latitude: Double,
+//        longitude: Double,
+//        distance: Int,
+//        isMilitary: Boolean
+//    ): List<Aircraft> {
+//        val serviceResult = if (isMilitary) {
+//            PlaneTrackerAPIService.adsbService.getMilitaryAircraft()
+//        } else {
+//            PlaneTrackerAPIService.adsbService.getAircraftInArea(
+//                lat = latitude,
+//                lon = longitude,
+//                dist = distance
+//            )
+//        }
+//
+//        return serviceResult.ac ?: emptyList()
+//    }
+//
+//    private suspend fun fetchAircraftImage(registration: String): List<ImageResponse> {
+//        Log.d("AircraftViewModel", "Fetching aircraft image for registration: $registration")
+//
+//        val jetApiResponse =
+//            PlaneTrackerAPIService.jetService.getAircraftPhotos(registration = registration)
+//
+//        Log.d("AircraftViewModel", "$jetApiResponse")
+//
+//        return jetApiResponse.images ?: emptyList()
+//    }
 
     /*
      * Updates the search location parameters to be passed onto getAircraftInArea calls
@@ -170,18 +174,8 @@ class AircraftMapViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun loadAircraftImage(registration: String?) {
-        if (registration.isNullOrEmpty()) {
-            _currentImageUrl.value = "https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI"
-        } else {
-            viewModelScope.launch {
-                try {
-                    _currentImageUrl.value = fetchAircraftImage(registration).first().image ?: "https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI"
-                }
-                catch (ex: Exception){
-                    Log.d("AircraftViewModel", "Error fetching image data: $ex")
-                    _currentImageUrl.value = "https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI"
-                }
-            }
+        viewModelScope.launch {
+            _currentImageUrl.value = imageRepository.getAircraftPhotoUri(registration)
         }
     }
 }

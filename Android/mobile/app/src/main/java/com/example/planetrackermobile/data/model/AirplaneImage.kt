@@ -1,7 +1,24 @@
 package com.example.planetrackermobile.data.model
 
+import androidx.annotation.DrawableRes
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+
+data class AirplaneImage(
+    val imageUrl: String?,
+    @DrawableRes
+    val imageRes: Int?
+) {
+    constructor(imageResponse: ImageResponse) : this (
+        imageUrl = imageResponse.image,
+        imageRes = null
+    )
+
+    constructor(@DrawableRes imageRes: Int) : this (
+        imageUrl = null,
+        imageRes = imageRes
+    )
+}
 
 @Serializable
 data class JetApiResponse(

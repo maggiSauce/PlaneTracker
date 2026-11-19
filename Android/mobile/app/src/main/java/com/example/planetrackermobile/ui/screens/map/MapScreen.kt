@@ -393,7 +393,7 @@ fun AircraftInfoElement(
     }
 
     // 2. Observe the image URL reactively from the ViewModel
-    val imageUri by viewModel.currentImageUrl.collectAsState()
+    val planeImage by viewModel.currentImage.collectAsState()
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -403,7 +403,7 @@ fun AircraftInfoElement(
             modifier = Modifier.padding(16.dp)
         ) {
             AsyncImage(
-                model = imageUri,
+                model = planeImage?.imageUrl ?: planeImage?.imageRes,
                 contentDescription = "Aircraft Image",
                 modifier = modifier
                     .fillMaxWidth()

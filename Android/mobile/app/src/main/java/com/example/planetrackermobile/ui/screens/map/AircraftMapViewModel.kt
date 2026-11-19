@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.planetrackermobile.data.model.Aircraft
+import com.example.planetrackermobile.data.model.AirplaneImage
 import com.example.planetrackermobile.data.model.SettingsManager
 import com.example.planetrackermobile.data.model.StaticSettings
 import com.example.planetrackermobile.data.repository.AircraftRepository
@@ -59,8 +60,8 @@ class AircraftMapViewModel(
     private val _searchingForMilitary = MutableStateFlow(false)
     val searchingForMilitary = _searchingForMilitary.asStateFlow()
 
-    private val _currentImageUrl = MutableStateFlow<String?>(null)
-    val currentImageUrl = _currentImageUrl.asStateFlow()
+    private val _currentImage = MutableStateFlow<AirplaneImage?>(null)
+    val currentImage = _currentImage.asStateFlow()
 
     init {
         startLocationUpdates()
@@ -142,7 +143,7 @@ class AircraftMapViewModel(
 
     fun fetchAircraftImageUri(registration: String?) {
         viewModelScope.launch {
-            _currentImageUrl.value = imageRepository.getAircraftPhotoUri(registration)
+            _currentImage.value = imageRepository.getAircraftPhoto(registration)
         }
     }
 

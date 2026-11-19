@@ -1,6 +1,6 @@
 package com.example.planetrackermobile
 
-import com.example.planetrackermobile.data.PlaneTrackerAPIService
+import com.example.planetrackermobile.data.remote.PlaneTrackerAPIService
 import junit.framework.TestCase.assertNotNull
 import kotlinx.coroutines.runBlocking
 import org.junit.Test

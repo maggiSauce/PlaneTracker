@@ -1,4 +1,4 @@
-package com.example.planetrackermobile.data
+package com.example.planetrackermobile.data.model
 
 import android.content.Context
 import android.util.Log

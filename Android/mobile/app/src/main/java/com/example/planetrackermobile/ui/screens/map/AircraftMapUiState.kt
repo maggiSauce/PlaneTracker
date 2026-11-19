@@ -1,4 +1,7 @@
-package com.example.planetrackermobile.data
+package com.example.planetrackermobile.ui.screens.map
+
+import com.example.planetrackermobile.data.model.StaticSettings
+import com.example.planetrackermobile.data.model.Aircraft
 
 data class AircraftMapUiState(
     val aircraft: List<Aircraft> = emptyList(),

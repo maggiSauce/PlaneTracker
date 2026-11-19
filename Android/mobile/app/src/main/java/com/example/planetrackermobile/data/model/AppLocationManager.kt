@@ -1,11 +1,10 @@
-package com.example.planetrackermobile.data
+package com.example.planetrackermobile.data.model
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.LocationListener
 import android.location.LocationManager
 import org.maplibre.android.geometry.LatLng
-import org.maplibre.android.location.permissions.PermissionsManager
 
 class AppLocationManager(private val context: Context, private val onLocationChanged: (LatLng) -> Unit) {
     private val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager;

@@ -1,4 +1,4 @@
-package com.example.planetrackermobile.data
+package com.example.planetrackermobile.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

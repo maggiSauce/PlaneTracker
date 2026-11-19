@@ -1,8 +1,10 @@
-package com.example.planetrackermobile.data
+package com.example.planetrackermobile.ui.screens.map
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.planetrackermobile.data.repository.AircraftRepository
+import com.example.planetrackermobile.data.repository.ImageRepository
 
 class AircraftMapViewModelFactory(
     private val application: Application,

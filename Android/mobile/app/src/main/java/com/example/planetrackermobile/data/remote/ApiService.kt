@@ -1,5 +1,7 @@
-package com.example.planetrackermobile.data
+package com.example.planetrackermobile.data.remote
 
+import com.example.planetrackermobile.data.model.ADSBApiResponse
+import com.example.planetrackermobile.data.model.JetApiResponse
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType

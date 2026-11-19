@@ -31,8 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.planetrackermobile.data.SettingsManager
-import com.example.planetrackermobile.data.SettingsOptions
+import com.example.planetrackermobile.data.model.SettingsManager
+import com.example.planetrackermobile.data.model.SettingsOptions
 import com.example.planetrackermobile.ui.theme.PlaneTrackerTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch

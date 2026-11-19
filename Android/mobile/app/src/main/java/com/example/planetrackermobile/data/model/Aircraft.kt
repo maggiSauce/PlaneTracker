@@ -27,6 +27,7 @@ data class ADSBApiResponse(
                         "BOEING 737-700",
                         8050.0,
                         null,
+                        null,
                         53.375198,
                         -113.847787,
                         287.6,
@@ -39,6 +40,7 @@ data class ADSBApiResponse(
                         "B350",
                         "BEECHCRAFT Super King Air 350",
                         19125.0,
+                        null,
                         null,
                         53.594009,
                         -113.67586,
@@ -63,6 +65,8 @@ data class Aircraft(
     val desc: String? = null,    // safety if "description" is missing from json
     @SerialName(value = "alt_geom")
     val altitude: Double? = null,
+    @SerialName(value = "gs")
+    val groundSpeedInKnots: Double? = null,
     val category: String? = null,
     val lat: Double = 25.047670775667918,
     val lon: Double = -71.73367637651693,

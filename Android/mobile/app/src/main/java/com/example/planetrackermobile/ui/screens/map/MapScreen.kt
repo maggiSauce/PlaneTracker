@@ -405,28 +405,82 @@ fun AircraftInfoElement(
             AsyncImage(
                 model = planeImage?.imageUrl ?: planeImage?.imageRes,
                 contentDescription = "Aircraft Image",
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp),
                 contentScale = ContentScale.Crop
             )
-            Text(
-                text = "Flight Number: ${aircraft.flight}",
-                style = propertyTextStyle
-            )
-            Text(
-                text = "Tail Code: ${aircraft.tailCode}",
-                style = propertyTextStyle
-            )
-            Text(
-                // description is actually the name of the aircraft model
-                text = "Model: ${aircraft.desc}",
-                style = propertyTextStyle
-            )
-            Text(
-                text = "Altitude: ${aircraft.altitude} FT",
-                style = propertyTextStyle
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Flight Number: ",
+                    style = propertyTextStyle
+                )
+                Text(
+                    text = "${aircraft.flight?.trim()}",
+                    style = propertyTextStyle
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Tail Code: ",
+                    style = propertyTextStyle
+                )
+                Text(
+                    text = "${aircraft.tailCode}",
+                    style = propertyTextStyle
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Model: ",
+                    style = propertyTextStyle
+                )
+                Text(
+                    // description is actually the name of the aircraft model
+                    text = "${aircraft.desc}",
+                    style = propertyTextStyle
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Altitude: ",
+                    style = propertyTextStyle
+                )
+                Text(
+                    text = "${aircraft.altitude} FT",
+                    style = propertyTextStyle
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Speed: ",
+                    style = propertyTextStyle
+                )
+                Text(
+                    text = "${aircraft.groundSpeedInKnots} KTs",
+                    style = propertyTextStyle
+                )
+            }
         }
     }
 }

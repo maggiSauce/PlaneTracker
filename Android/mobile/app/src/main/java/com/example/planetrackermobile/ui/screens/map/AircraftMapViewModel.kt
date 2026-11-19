@@ -4,9 +4,9 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.planetrackermobile.data.model.Aircraft
 import com.example.planetrackermobile.data.model.SettingsManager
 import com.example.planetrackermobile.data.model.StaticSettings
-import com.example.planetrackermobile.data.model.Aircraft
 import com.example.planetrackermobile.data.repository.AircraftRepository
 import com.example.planetrackermobile.data.repository.ImageRepository
 import kotlinx.coroutines.currentCoroutineContext

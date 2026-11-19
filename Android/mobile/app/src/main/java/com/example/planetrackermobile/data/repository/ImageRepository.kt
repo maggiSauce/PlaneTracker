@@ -1,15 +1,16 @@
 package com.example.planetrackermobile.data.repository
 
 import android.util.Log
+import com.example.planetrackermobile.R
 import com.example.planetrackermobile.data.remote.JetApiService
 
-private const val DEFAULT_IMAGE_URI = "https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI"
+private const val DEFAULT_IMAGE_URI = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMgFa-M_sps__QZHPIv7V8nntlrQmr7q33YqoB3kPI74FiW6ENQIOgSes&s=10"
 
 
 class ImageRepository(
     private val api: JetApiService
 ) {
-    suspend fun getAircraftPhotoUri(registration: String?) : String{
+    suspend fun getAircraftPhotoUri(registration: String?) : String {
         if (registration.isNullOrEmpty()) {
             return DEFAULT_IMAGE_URI
         }
@@ -24,4 +25,13 @@ class ImageRepository(
             return DEFAULT_IMAGE_URI
         }
     }
+}
+
+private fun getRandomUrI(): Int {
+    val defaultImages = listOf(
+        R.drawable.f22cat,
+        R.drawable.soyouwanttolearntofly,
+        R.drawable.sudrink,
+    )
+    return defaultImages.random()
 }

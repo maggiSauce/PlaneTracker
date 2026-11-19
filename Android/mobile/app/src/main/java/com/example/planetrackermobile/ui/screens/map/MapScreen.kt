@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -38,10 +38,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.example.planetrackermobile.R
 import com.example.planetrackermobile.data.model.Aircraft
-import com.example.planetrackermobile.ui.screens.map.AircraftMapViewModel
 import com.example.planetrackermobile.data.model.SettingsManager
 import com.example.planetrackermobile.data.model.SettingsOptions
 import com.example.planetrackermobile.data.model.StaticSettings
+import com.example.planetrackermobile.ui.screens.map.AircraftMapViewModel
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.maplibre.compose.camera.CameraPosition
@@ -63,6 +63,7 @@ import org.maplibre.compose.map.rememberMapState
 import org.maplibre.compose.sources.GeoJsonData
 import org.maplibre.compose.sources.rememberGeoJsonSource
 import org.maplibre.compose.style.BaseStyle
+import org.maplibre.compose.util.DpPadding
 import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.Point
 import org.maplibre.spatialk.geojson.Feature.Companion.getStringProperty
@@ -258,6 +259,12 @@ fun MapScreen(
                     longitude = aircraft.lon,
                     latitude = aircraft.lat
                 ),
+                padding = DpPadding(
+                    left = 0.dp,
+                    top = 200.dp,
+                    right = 0.dp,
+                    bottom = 0.dp
+                ),
                 zoom = 10.0
             )
         )
@@ -279,6 +286,12 @@ fun MapScreen(
                 center = Position(
                     longitude = aircraft.lon,
                     latitude = aircraft.lat
+                ),
+                padding = DpPadding(
+                    left = 0.dp,
+                    top = 200.dp,
+                    right = 0.dp,
+                    bottom = 0.dp
                 ),
             )
         )
@@ -392,7 +405,9 @@ fun AircraftInfoElement(
             AsyncImage(
                 model = imageUri,
                 contentDescription = "Aircraft Image",
-                modifier = modifier.size(200.dp),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
                 contentScale = ContentScale.Crop
             )
             Text(

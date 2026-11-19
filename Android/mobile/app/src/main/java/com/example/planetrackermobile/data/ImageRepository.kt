@@ -14,11 +14,12 @@ class ImageRepository(
         }
 
         try {
+            Log.d("ImageRepository", "Fetching image uri for tail code: $registration")
             val jetApiResponse = api.getAircraftPhotos(registration)
-            Log.d("AircraftViewModel", "$jetApiResponse")
+            Log.d("ImageRepository", "$jetApiResponse")
             return jetApiResponse.images.firstOrNull()?.image ?: DEFAULT_IMAGE_URI
         } catch (e: Exception) {
-            Log.d("AircraftViewModel", "Could not get image $e")
+            Log.d("ImageRepository", "Could not get image $e")
             return DEFAULT_IMAGE_URI
         }
     }

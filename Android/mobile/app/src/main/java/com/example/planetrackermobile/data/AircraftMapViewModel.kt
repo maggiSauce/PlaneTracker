@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +14,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -27,9 +30,11 @@ const val QUARTER_WORLD_ZOOM_ZERO_NM =
 class AircraftMapViewModel(
     application: Application,
     private val imageRepository: ImageRepository,
-//    aircraftRepository: AircraftRepository,
+    private val aircraftRepository: AircraftRepository,
 ) : AndroidViewModel(application) {
     private val settingsManager = SettingsManager(application)
+//    private val _uiState = MutableStateFlow(AircraftMapUiState())
+//    val uiState = _uiState.asStateFlow()
 
     private val _aircraft = MutableStateFlow<List<Aircraft>>(emptyList())
     val aircraft = _aircraft.asStateFlow()
@@ -84,7 +89,7 @@ class AircraftMapViewModel(
         interval: Long,
         isMilitary: Boolean
     ): Flow<List<Aircraft>> = flow {
-        while (true) {
+        while (currentCoroutineContext().isActive) {
             try {
                 Log.d(
                     "AircraftViewModel",
@@ -100,6 +105,8 @@ class AircraftMapViewModel(
                 emit(aircraft)
 
                 Log.d("AircraftViewModel", "Found ${aircraft.size} $aircraft")
+            } catch (e: CancellationException) {
+                throw e
             } catch (ex: Exception) {
                 Log.d("AircraftViewModel", "Error fetching data: $ex")
             }
@@ -109,35 +116,30 @@ class AircraftMapViewModel(
 
 
     /// API CALLS
-//    private suspend fun fetchAircraft(
-//        latitude: Double,
-//        longitude: Double,
-//        distance: Int,
-//        isMilitary: Boolean
-//    ): List<Aircraft> {
-//        val serviceResult = if (isMilitary) {
-//            PlaneTrackerAPIService.adsbService.getMilitaryAircraft()
-//        } else {
-//            PlaneTrackerAPIService.adsbService.getAircraftInArea(
-//                lat = latitude,
-//                lon = longitude,
-//                dist = distance
-//            )
-//        }
-//
-//        return serviceResult.ac ?: emptyList()
-//    }
-//
-//    private suspend fun fetchAircraftImage(registration: String): List<ImageResponse> {
-//        Log.d("AircraftViewModel", "Fetching aircraft image for registration: $registration")
-//
-//        val jetApiResponse =
-//            PlaneTrackerAPIService.jetService.getAircraftPhotos(registration = registration)
-//
-//        Log.d("AircraftViewModel", "$jetApiResponse")
-//
-//        return jetApiResponse.images ?: emptyList()
-//    }
+    private suspend fun fetchAircraft(
+        latitude: Double,
+        longitude: Double,
+        distance: Int,
+        isMilitary: Boolean
+    ): List<Aircraft> {
+        val aircraftList = if (isMilitary) {
+            aircraftRepository.fetchMilitaryAircraft()
+        } else {
+            aircraftRepository.fetchAircraftInArea(
+                latitude = latitude,
+                longitude = longitude,
+                distance = distance
+            )
+        }
+
+        return aircraftList
+    }
+
+    fun fetchAircraftImageUri(registration: String?) {
+        viewModelScope.launch {
+            _currentImageUrl.value = imageRepository.getAircraftPhotoUri(registration)
+        }
+    }
 
     /*
      * Updates the search location parameters to be passed onto getAircraftInArea calls
@@ -171,11 +173,5 @@ class AircraftMapViewModel(
     fun toggleSearchForMilitary() {
         _searchingForMilitary.value = !searchingForMilitary.value
         Log.d("AircraftViewModel", "Searching for military: ${_searchingForMilitary.value}")
-    }
-
-    fun loadAircraftImage(registration: String?) {
-        viewModelScope.launch {
-            _currentImageUrl.value = imageRepository.getAircraftPhotoUri(registration)
-        }
     }
 }

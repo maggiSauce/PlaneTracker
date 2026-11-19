@@ -377,7 +377,7 @@ fun AircraftInfoElement(
 
     // 1. Trigger the load once when this aircraft's tailCode changes
     LaunchedEffect(aircraft.tailCode) {
-        viewModel.loadAircraftImage(aircraft.tailCode)
+        viewModel.fetchAircraftImageUri(aircraft.tailCode)
     }
 
     // 2. Observe the image URL reactively from the ViewModel
